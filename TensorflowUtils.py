@@ -9,7 +9,7 @@ import tarfile
 import zipfile
 import scipy.io
 
-
+# get VGG model?
 def get_model_data(dir_path, model_url):
     maybe_download_and_extract(dir_path, model_url)
     filename = model_url.split("/")[-1]
@@ -29,6 +29,7 @@ def maybe_download_and_extract(dir_path, url_name, is_tarfile=False, is_zipfile=
         def _progress(count, block_size, total_size):
             sys.stdout.write(
                 '\r>> Downloading %s %.1f%%' % (filename, float(count * block_size) / float(total_size) * 100.0))
+            # continuous changing
             sys.stdout.flush()
 
         filepath, _ = urllib.request.urlretrieve(url_name, filepath, reporthook=_progress)
@@ -56,7 +57,7 @@ def save_image(image, save_dir, name, mean=None):
         image = unprocess_image(image, mean)
     misc.imsave(os.path.join(save_dir, name + ".png"), image)
 
-
+# set constant values for the weights matrix
 def get_variable(weights, name):
     init = tf.constant_initializer(weights, dtype=tf.float32)
     var = tf.get_variable(name=name, initializer=init,  shape=weights.shape)
@@ -79,7 +80,7 @@ def bias_variable(shape, name=None):
     else:
         return tf.get_variable(name, initializer=initial)
 
-
+# 1*tensor.shape[0]*tensor.shape[1]...
 def get_tensor_size(tensor):
     from operator import mul
     return reduce(mul, (d.value for d in tensor.get_shape()), 1)
@@ -94,7 +95,7 @@ def conv2d_strided(x, W, b):
     conv = tf.nn.conv2d(x, W, strides=[1, 2, 2, 1], padding="SAME")
     return tf.nn.bias_add(conv, b)
 
-
+# deconvolutional 
 def conv2d_transpose_strided(x, W, b, output_shape=None, stride = 2):
     # print x.get_shape()
     # print W.get_shape()
@@ -102,6 +103,7 @@ def conv2d_transpose_strided(x, W, b, output_shape=None, stride = 2):
         output_shape = x.get_shape().as_list()
         output_shape[1] *= 2
         output_shape[2] *= 2
+        # extract conv kernel number W.get_shape().as_list()[2]
         output_shape[3] = W.get_shape().as_list()[2]
     # print output_shape
     conv = tf.nn.conv2d_transpose(x, W, output_shape, strides=[1, stride, stride, 1], padding="SAME")
